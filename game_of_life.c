@@ -31,11 +31,12 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 	char file_name[30]; 
 	sprintf(file_name, fil_sti, i);
 	FILE *fp = fopen(file_name,"wb");
+	if(fp == NULL) {fprintf(stderr,"fejel i at skrive til %s \n", file_name); return 1;}
 
 	fprintf(fp,"P4\n%d %d\n",br.len_x ,br.len_y);
 
  	size_t buff_size =  br.len_x*br.len_y;
-	unsigned char *buff = (char*)malloc(buff_size);
+	unsigned char *buff = (unsigned  char*)malloc(buff_size);
 
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
@@ -47,7 +48,7 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 		}
 	fwrite(buff, sizeof(unsigned char), buff_size/sizeof(unsigned char), fp);
 	fclose(fp);
-
+	return 0;
 }
 
 int gem_til_img_ascci(struct bor br ,char *fil_sti, int i)
@@ -55,11 +56,13 @@ int gem_til_img_ascci(struct bor br ,char *fil_sti, int i)
 	char file_name[20]; 
 	sprintf(file_name, fil_sti, i);
 	FILE *fp = fopen(file_name,"w");
+	if(fp == NULL) {fprintf(stderr,"fejel i at skrive til %s \n", file_name); return 1;}
 	fprintf(fp,"P1\n%d %d\n",br.len_x ,br.len_y);
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
 			fprintf(fp,"%d", *bor_inedx(br, x, y));
 	fclose(fp);
+	return 0;
 }
 
 
@@ -149,14 +152,14 @@ void bor_trin(struct bor br)
 int main()
 {
 	struct bor br;
-	if( init(&br, 1920, 1080) )
+	if( init(&br, 192, 108) )
 	{
 		fprintf(stderr,"faild to inishiale");
 		return 1;
 	}
 	bor_to_noise(br);
 
-	int n = 10000;
+	int n = 100;
 	for(int i = 0; i < n; i++)
 	{
 		printf("%d af %d \r", i, n);
