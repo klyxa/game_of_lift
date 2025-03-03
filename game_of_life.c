@@ -26,6 +26,54 @@ int* bor_inedx_alt(struct bor br, int x, int y)
 	return br.bor[(br.index_bor + 1) % 2] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
 }
 
+int lode_fra_img(struct bor br ,char *file_name)
+{
+	printf("%s\n",file_name);
+
+	FILE *fp = fopen(file_name,"r");
+	if(fp == NULL) {fprintf(stderr,"kumme ikke finde %s \n", file_name); return 1;}
+	int type = 0;
+	int aug;
+	do
+	{
+		aug = fscanf(fp, "P%d",&type);
+	}while(aug != 1 && aug != EOF);
+	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde typpen fx som P1 og P4 mm. i filen %s \n", file_name); return 2;}
+	else
+		printf("P%d\n",type);
+	//find img size
+	int x;
+	int y;
+	do
+	{
+		aug = fscanf(fp, "%d %d",&x,&y);
+	}while(aug != 2 && aug != EOF);
+	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
+	
+
+
+	switch (type) {
+	    case 4:
+		printf("Case 4 is Matched.\n");
+		printf("størlse %d %d\n", x, y);
+		break;
+
+	    case 1:
+	    case 2:
+	    case 3:
+	    case 5:
+	    case 6:
+	    case 7:
+
+	    default:
+		printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
+		break;
+	}
+
+
+	return 0;
+}
+
 int gem_til_img(struct bor br ,char *fil_sti, int i)
 {
 	char file_name[30]; 
@@ -149,7 +197,7 @@ void bor_trin(struct bor br)
 		}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	struct bor br;
 	if( init(&br, 192, 108) )
@@ -157,9 +205,12 @@ int main()
 		fprintf(stderr,"faild to inishiale");
 		return 1;
 	}
-	bor_to_noise(br);
+	if(argc > 1)
+		lode_fra_img(br, argv[1]);
+	else
+		bor_to_noise(br);
 
-	int n = 100;
+	int n = 10;
 	for(int i = 0; i < n; i++)
 	{
 		printf("%d af %d \r", i, n);
