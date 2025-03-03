@@ -26,7 +26,30 @@ int* bor_inedx_alt(struct bor br, int x, int y)
 	return br.bor[(br.index_bor + 1) % 2] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
 }
 
-int lode_fra_img(struct bor br ,char *file_name)
+int init(struct bor *pbr, int len_x, int len_y)
+{
+	int pad = 1;
+	struct bor br = {len_x, len_y, pad ,0 , {(int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int)), (int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int))}};
+	if (br.bor[0] == NULL || br.bor[1] == NULL) {fprintf(stderr,"faild of alocade bord"); return 1;}
+	*pbr = br;
+	return 0;
+}
+
+void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
+{
+	for(int y = 0; y < br.len_y; y++)
+		for(int x = 0; x < br.len_x; x++)
+		{
+			char h;
+			do
+			{
+				h = fgetc(fp);
+			}while(h != '0' && h != '1' && h != EOF);	
+			*bor_inedx(br, x, y) = h == '0';
+		}
+}
+
+int lode_fra_img(struct bor *br ,char *file_name)
 {
 	printf("%s\n",file_name);
 
@@ -49,16 +72,19 @@ int lode_fra_img(struct bor br ,char *file_name)
 		aug = fscanf(fp, "%d %d",&x,&y);
 	}while(aug != 2 && aug != EOF);
 	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
-	
 
-
-	switch (type) {
+	if( init(br, x, y) ){fprintf(stderr,"faild to inishiale brat størlse %d %d i filen %s \n ", x, y, file_name); return 3;}
+		switch (type)
+	{
+	    case 1:
+		printf("P1 2, the values 0 and 1 (white & black) ascii \nstørlse %d %d\n", x, y);
+		read_ascci_pbm_img_stream(*br, fp);
+		break;
 	    case 4:
-		printf("Case 4 is Matched.\n");
+		printf("P4 2, the values 0 and 1 (white & black) Binary\n");
 		printf("størlse %d %d\n", x, y);
 		break;
 
-	    case 1:
 	    case 2:
 	    case 3:
 	    case 5:
@@ -69,7 +95,6 @@ int lode_fra_img(struct bor br ,char *file_name)
 		printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
 		break;
 	}
-
 
 	return 0;
 }
@@ -146,15 +171,6 @@ void bor_print_index(struct bor br)
 	}
 }
 
-int init(struct bor *pbr, int len_x, int len_y)
-{
-	int pad = 1;
-	struct bor br = {len_x, len_y, pad ,0 , {(int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int)), (int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int))}};
-	if (br.bor[0] == NULL || br.bor[1] == NULL) {fprintf(stderr,"faild of alocade bord"); return 1;}
-	*pbr = br;
-	return 0;
-}
-
 void bor_free_bor(struct bor *br)
 {
 	free(br->bor[0]);
@@ -200,16 +216,18 @@ void bor_trin(struct bor br)
 int main(int argc, char *argv[])
 {
 	struct bor br;
-	if( init(&br, 192, 108) )
-	{
-		fprintf(stderr,"faild to inishiale");
-		return 1;
-	}
 	if(argc > 1)
-		lode_fra_img(br, argv[1]);
+		lode_fra_img(&br, argv[1]);
 	else
+	{
+		if( init(&br, 192, 108) )
+		{
+			fprintf(stderr,"faild to inishiale");
+			return 1;
+		}
 		bor_to_noise(br);
 
+	}
 	int n = 10;
 	for(int i = 0; i < n; i++)
 	{
