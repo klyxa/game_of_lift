@@ -40,12 +40,13 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
 		{
-			char h;
+			int h;
 			do
 			{
 				h = fgetc(fp);
+				putchar(h);
 			}while(h != '0' && h != '1' && h != EOF);	
-			*bor_inedx(br, x, y) = h == '0';
+			*bor_inedx(br, x, y) = (h == '0');
 		}
 }
 
@@ -62,14 +63,17 @@ int lode_fra_img(struct bor *br ,char *file_name)
 		aug = fscanf(fp, "P%d",&type);
 	}while(aug != 1 && aug != EOF);
 	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde typpen fx som P1 og P4 mm. i filen %s \n", file_name); return 2;}
-	else
-		printf("P%d\n",type);
+		
+	printf("P%d  \n-d\n",type);
+
 	//find img size
 	int x;
 	int y;
 	do
 	{
 		aug = fscanf(fp, "%d %d",&x,&y);
+		if (aug != 0)
+			printf("fscanf returned: %d\n", aug);
 	}while(aug != 2 && aug != EOF);
 	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
 
