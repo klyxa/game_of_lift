@@ -35,8 +35,8 @@ int* bor_inedx_alt(struct bor br, int x, int y)
 struct xy bor_inedx_invers(struct bor br, int index)
 {
 	struct xy i;// = {-1, -1};
-	i.y = index/(br.len_x+br.pading*2);
-	i.x = index - ((br.len_x+br.pading*2)*(i.y + br.pading) + br.pading);
+	i.y = index/(br.len_x);
+	i.x = index - br.len_x*i.y;
 	return i;
 }
 
