@@ -16,6 +16,12 @@ struct bor{
 	int *bor[2];
 };
 
+struct xy{
+	int x;
+	int y;
+};
+
+
 int* bor_inedx(struct bor br, int x, int y)
 {
 	return br.bor[br.index_bor] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
@@ -24,6 +30,14 @@ int* bor_inedx(struct bor br, int x, int y)
 int* bor_inedx_alt(struct bor br, int x, int y)
 {
 	return br.bor[(br.index_bor + 1) % 2] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
+}
+
+struct xy bor_inedx_invers(struct bor br, int index)
+{
+	struct xy i;// = {-1, -1};
+	i.y = index/(br.len_x+br.pading*2);
+	i.x = index - ((br.len_x+br.pading*2)*(i.y + br.pading) + br.pading);
+	return i;
 }
 
 int init(struct bor *pbr, int len_x, int len_y)
@@ -50,6 +64,24 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 		}
 }
 
+void read_bin_pbm_img_stream (struct bor br , FILE *fp)
+{
+	int h;
+	for(int i = 0;(h = fgetc(fp)) != EOF; i++)
+	{
+		struct xy pun = bor_inedx_invers(br, i);
+		//printf("(%d %d)", pun.x, pun.y);
+		printf("%d\t", pun.x);
+		if(pun.x == 0)
+			printf("\n");
+		/*
+		for(int j = i; i-j< 8;i++)
+		{
+		}
+		*/
+	}
+}
+
 int lode_fra_img(struct bor *br ,char *file_name)
 {
 	printf("%s\n",file_name);
@@ -63,43 +95,49 @@ int lode_fra_img(struct bor *br ,char *file_name)
 		aug = fscanf(fp, "P%d",&type);
 	}while(aug != 1 && aug != EOF);
 	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde typpen fx som P1 og P4 mm. i filen %s \n", file_name); return 2;}
-		
+
 	printf("P%d  \n-d\n",type);
 
 	//find img size
-	int x;
-	int y;
-	do
-	{
-		aug = fscanf(fp, "%d %d",&x,&y);
-		if (aug != 0)
-			printf("fscanf returned: %d\n", aug);
-	}while(aug != 2 && aug != EOF);
-	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
+	int x = 0;
+	int y = 0;
+	
+	char *s = NULL;
+        size_t len = 0;
+	ssize_t nread;
+
+	while ((nread = getdelim(&s, &len, '\n', fp)) != EOF)
+		if(s[0] != '#')
+			if (sscanf(s, "%d %d", &x, &y) == 2)
+				  break;
+	free(s);
+	if(nread == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
 
 	if( init(br, x, y) ){fprintf(stderr,"faild to inishiale brat størlse %d %d i filen %s \n ", x, y, file_name); return 3;}
-		switch (type)
+
+	switch (type)
 	{
-	    case 1:
-		printf("P1 2, the values 0 and 1 (white & black) ascii \nstørlse %d %d\n", x, y);
-		read_ascci_pbm_img_stream(*br, fp);
-		break;
-	    case 4:
-		printf("P4 2, the values 0 and 1 (white & black) Binary\n");
-		printf("størlse %d %d\n", x, y);
-		break;
+		case 1:
+			//printf("P1, the values 0 and 1 (white & black) ascii \nstørlse %d %d\n", x, y);
+			read_ascci_pbm_img_stream(*br, fp);
+			break;
+		case 4:
+			printf("P4, the values 0 and 1 (white & black) Binary\n");
+			read_bin_pbm_img_stream(*br, fp);
+			printf("størlse %d %d\n", x, y);
+			break;
 
-	    case 2:
-	    case 3:
-	    case 5:
-	    case 6:
-	    case 7:
+		case 2:
+		case 3:
+		case 5:
+		case 6:
+		case 7:
 
-	    default:
-		printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
-		break;
+		default:
+			printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
+			break;
 	}
-
+	
 	return 0;
 }
 
