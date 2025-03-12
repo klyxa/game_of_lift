@@ -112,16 +112,65 @@ int* bor_inedx_alt(struct bor br, int x, int y)
 	return br.bor[(br.index_bor + 1) % 2] + (x | (y << 1));
 }
 
+int lode_fra_img(struct bor br ,char *file_name)
+{
+	printf("%s\n",file_name);
+
+	FILE *fp = fopen(file_name,"r");
+	if(fp == NULL) {fprintf(stderr,"kumme ikke finde %s \n", file_name); return 1;}
+	int type = 0;
+	int aug;
+	do
+	{
+		aug = fscanf(fp, "P%d",&type);
+	}while(aug != 1 && aug != EOF);
+	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde typpen fx som P1 og P4 mm. i filen %s \n", file_name); return 2;}
+	else
+		printf("P%d\n",type);
+	//find img size
+	int x;
+	int y;
+	do
+	{
+		aug = fscanf(fp, "%d %d",&x,&y);
+	}while(aug != 2 && aug != EOF);
+	if(aug == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
+	
+
+
+	switch (type) {
+	    case 4:
+		printf("Case 4 is Matched.\n");
+		printf("størlse %d %d\n", x, y);
+		break;
+
+	    case 1:
+	    case 2:
+	    case 3:
+	    case 5:
+	    case 6:
+	    case 7:
+
+	    default:
+		printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
+		break;
+	}
+
+
+	return 0;
+}
+
 int gem_til_img(struct bor br ,char *fil_sti, int i)
 {
 	char file_name[30]; 
 	sprintf(file_name, fil_sti, i);
 	FILE *fp = fopen(file_name,"wb");
+	if(fp == NULL) {fprintf(stderr,"fejel i at skrive til %s \n", file_name); return 1;}
 
 	fprintf(fp,"P4\n%d %d\n",br.len_x ,br.len_y);
 
  	size_t buff_size =  br.len_x*br.len_y;
-	unsigned char *buff = (char*)malloc(buff_size);
+	unsigned char *buff = (unsigned  char*)malloc(buff_size);
 
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
@@ -133,7 +182,7 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 		}
 	fwrite(buff, sizeof(unsigned char), buff_size/sizeof(unsigned char), fp);
 	fclose(fp);
-
+	return 0;
 }
 
 int gem_til_img_ascci(struct bor br ,char *fil_sti, int i)
@@ -141,11 +190,13 @@ int gem_til_img_ascci(struct bor br ,char *fil_sti, int i)
 	char file_name[20]; 
 	sprintf(file_name, fil_sti, i);
 	FILE *fp = fopen(file_name,"w");
+	if(fp == NULL) {fprintf(stderr,"fejel i at skrive til %s \n", file_name); return 1;}
 	fprintf(fp,"P1\n%d %d\n",br.len_x ,br.len_y);
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
 			fprintf(fp,"%d", *bor_inedx(br, x, y));
 	fclose(fp);
+	return 0;
 }
 
 
@@ -232,17 +283,20 @@ void bor_trin(struct bor br)
 		}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	struct bor br;
-	if( init(&br, 1024, 1024))
+	if( init(&br, 192, 108) )
 	{
 		fprintf(stderr,"faildl to inishiale");
 		return 1;
 	}
-	bor_to_noise(br);
+	if(argc > 1)
+		lode_fra_img(br, argv[1]);
+	else
+		bor_to_noise(br);
 
-	int n = 1000;
+	int n = 10;
 	for(int i = 0; i < n; i++)
 	{
 		printf("%d af %d \r", i, n);
