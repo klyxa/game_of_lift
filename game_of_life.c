@@ -22,6 +22,19 @@ struct xy{
 };
 
 
+int bor_granse_tjek(struct bor br, int x, int y)
+{
+	if(x < 0-br.pading)
+		return 0;
+	if(y < 0-br.pading)
+		return 0;
+	if(x > br.len_x+br.pading)
+		return 0;
+	if(y > br.len_y+br.pading)
+		return 0;
+	return 1;
+}
+
 int* bor_inedx(struct bor br, int x, int y)
 {
 	return br.bor[br.index_bor] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
@@ -35,8 +48,8 @@ int* bor_inedx_alt(struct bor br, int x, int y)
 struct xy bor_inedx_invers(struct bor br, int index)
 {
 	struct xy i;// = {-1, -1};
-	i.y = index/(br.len_x);
-	i.x = index - br.len_x*i.y;
+	i.y = index / br.len_x;
+	i.x = index % br.len_x;
 	return i;
 }
 
@@ -69,18 +82,16 @@ void read_bin_pbm_img_stream (struct bor br , FILE *fp)
 	int h;
 	for(int i = 0;(h = fgetc(fp)) != EOF; i++)
 	{
-		struct xy pun = bor_inedx_invers(br, i);
-		//printf("(%d %d)", pun.x, pun.y);
-		printf("%d\t", pun.x);
-		if(pun.x == 0)
-			printf("\n");
-		/*
-		for(int j = i; i-j< 8;i++)
+		for(int j = i; i-j < 8 ;i++)
 		{
+			struct xy pun = bor_inedx_invers(br, i);
+			if(bor_granse_tjek(br,pun.x, pun.y))
+				*bor_inedx(br, pun.x, pun.y) = 0 < (h & (1 << (i-j)));
 		}
-		*/
 	}
+	printf("\n");
 }
+		
 
 int lode_fra_img(struct bor *br ,char *file_name)
 {
