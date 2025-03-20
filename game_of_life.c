@@ -71,48 +71,35 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 			do
 			{
 				h = fgetc(fp);
-				putchar(h);
+				//putchar(h);
 			}while(h != '0' && h != '1' && h != EOF);	
 			*bor_inedx(br, x, y) = (h == '0');
 		}
 }
 
+// img in p4 .pbm
 void read_bin_pbm_img_stream (struct bor br , FILE *fp)
 {
 	int ch;
 	int i = 0;
 	for(int y = 0; y < br.len_y; y++)
 	{
-		ch = fgetc(pf);
+		ch = fgetc(fp);
 		i = 0;
-		for(int x = 0; x < br.len_x; x++)
+		for(int x = 0; x < br.len_x -  1; x++)
 		{
-			*bor_inedx(br, pun.x, pun.y) = 0 < (ch & (1 << i));
+			*bor_inedx(br, x, y) = 0 < (ch & (1 << (7 - i)));
+
 			i++;
 			if(i == 8)
 			{
-				ch = fgetc(pf);
+				ch = fgetc(fp);
 				i = 0;
 			}
 		}
 	}
 
 }
-void read_bin_pbm_img_stream (struct bor br , FILE *fp)
-{
-	int h;
-	for(int i = 0;(h = fgetc(fp)) != EOF; i++)
-	{
-		for(int j = i; i-j < 8 ;i++)
-		{
-			struct xy pun = bor_inedx_invers(br, i);
-			if(bor_granse_tjek(br,pun.x, pun.y))
-				*bor_inedx(br, pun.x, pun.y) = 0 < (h & (1 << (i-j)));
-		}
-	}
-	printf("\n");
-}
-		
 
 int lode_fra_img(struct bor *br ,char *file_name)
 {
@@ -267,7 +254,7 @@ void bor_trin(struct bor br)
 			na += *bor_inedx(br, x+1, y-1);
 			na += *bor_inedx(br, x+1, y);
 			na += *bor_inedx(br, x+1, y+1);
-			if( *bor_inedx(br, x, y))
+			if( 1 == *bor_inedx(br, x, y))
 			{
 				if(na == 2)
 					*bor_inedx_alt(br, x, y) = 1;
@@ -302,7 +289,7 @@ int main(int argc, char *argv[])
 		bor_to_noise(br);
 
 	}
-	int n = 10;
+	int n = 100;
 	for(int i = 0; i < n; i++)
 	{
 		printf("%d af %d \r", i, n);
