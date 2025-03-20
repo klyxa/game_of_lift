@@ -277,6 +277,11 @@ void bor_trin(struct bor br)
 int main(int argc, char *argv[])
 {
 	struct bor br;
+	if( init(&br, 192, 108) )
+	{
+		fprintf(stderr,"faildl to inishiale");
+		return 1;
+	}
 	if(argc > 1)
 		lode_fra_img(&br, argv[1]);
 	else
