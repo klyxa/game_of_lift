@@ -79,6 +79,27 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 
 void read_bin_pbm_img_stream (struct bor br , FILE *fp)
 {
+	int ch;
+	int i = 0;
+	for(int y = 0; y < br.len_y; y++)
+	{
+		ch = fgetc(pf);
+		i = 0;
+		for(int x = 0; x < br.len_x; x++)
+		{
+			*bor_inedx(br, pun.x, pun.y) = 0 < (ch & (1 << i));
+			i++;
+			if(i == 8)
+			{
+				ch = fgetc(pf);
+				i = 0;
+			}
+		}
+	}
+
+}
+void read_bin_pbm_img_stream (struct bor br , FILE *fp)
+{
 	int h;
 	for(int i = 0;(h = fgetc(fp)) != EOF; i++)
 	{
