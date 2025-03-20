@@ -141,9 +141,9 @@ int lode_fra_img(struct bor *br ,char *file_name)
 			read_ascci_pbm_img_stream(*br, fp);
 			break;
 		case 4:
-			printf("P4, the values 0 and 1 (white & black) Binary\n");
+			//printf("P4, the values 0 and 1 (white & black) Binary\n");
 			read_bin_pbm_img_stream(*br, fp);
-			printf("størlse %d %d\n", x, y);
+			//printf("størlse %d %d\n", x, y);
 			break;
 
 		case 2:
@@ -154,7 +154,7 @@ int lode_fra_img(struct bor *br ,char *file_name)
 
 		default:
 			printf("denne typpe er ikke implatedser i nu\nP%d\n %d %d\n",type, x, y);
-			break;
+			return 4;
 	}
 	
 	return 0;
@@ -181,6 +181,7 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 				buff[index]++;
 		}
 	fwrite(buff, sizeof(unsigned char), buff_size/sizeof(unsigned char), fp);
+	free(buff);
 	fclose(fp);
 	return 0;
 }
@@ -277,13 +278,11 @@ void bor_trin(struct bor br)
 int main(int argc, char *argv[])
 {
 	struct bor br;
-	if( init(&br, 192, 108) )
-	{
-		fprintf(stderr,"faildl to inishiale");
-		return 1;
-	}
 	if(argc > 1)
-		lode_fra_img(&br, argv[1]);
+	{
+		if(lode_fra_img(&br, argv[1]))
+			return 1;
+	}
 	else
 	{
 		if( init(&br, 192, 108) )
@@ -298,7 +297,7 @@ int main(int argc, char *argv[])
 	for(int i = 0; i < n; i++)
 	{
 		printf("%d af %d \r", i, n);
-    	fflush(stdout);
+		fflush(stdout);
 		bor_trin(br);
 		gem_til_img(br, "img/img_%d.pbm", i);
 		br.index_bor = (br.index_bor + 1) % 2;
