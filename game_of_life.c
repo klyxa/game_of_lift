@@ -1,9 +1,17 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int min(int a, int b)
 {
 	if(a < b)
+		return a;
+	return b;
+}
+
+int max(int a, int b)
+{
+	if(a > b)
 		return a;
 	return b;
 }
@@ -34,8 +42,67 @@ int bor_granse_tjek(struct bor br, int x, int y)
 		return 0;
 	return 1;
 }
+#ifdef ZMEMO
+
+int min_z(int x,int y)
+{
+	int index = 0;
+
+	index += (1 & (x >> 0)) << 0;
+	index += (1 & (x >> 1)) << 2;
+	index += (1 & (x >> 2)) << 4;
+	index += (1 & (x >> 3)) << 6;
+	index += (1 & (x >> 4)) << 8;
+	index += (1 & (x >> 5)) << 10;
+	index += (1 & (x >> 6)) << 12;
+	index += (1 & (x >> 7)) << 14;
+	index += (1 & (x >> 8)) << 16;
+	index += (1 & (x >> 9)) << 18;
+	index += (1 & (x >> 10)) << 20;
+	index += (1 & (x >> 11)) << 22;
+	index += (1 & (x >> 12)) << 24;
+	index += (1 & (x >> 13)) << 26;
+	index += (1 & (x >> 14)) << 28;
+	index += (1 & (x >> 15)) << 30;
+	
+	index += (1 & (y >> 0)) << 1;
+	index += (1 & (y >> 1)) << 3;
+	index += (1 & (y >> 2)) << 5;
+	index += (1 & (y >> 3)) << 7;
+	index += (1 & (y >> 4)) << 9;
+	index += (1 & (y >> 5)) << 11;
+	index += (1 & (y >> 6)) << 12;
+	index += (1 & (y >> 7)) << 13;
+	index += (1 & (y >> 8)) << 15;
+	index += (1 & (y >> 9)) << 17;
+	index += (1 & (y >> 10)) << 19;
+	index += (1 & (y >> 11)) << 21;
+	index += (1 & (y >> 12)) << 23;
+	index += (1 & (y >> 13)) << 25;
+	index += (1 & (y >> 14)) << 27;
+	index += (1 & (y >> 15)) << 29;
+	index += (1 & (y >> 16)) << 31;
+	return index;
+}
+
 
 int* bor_inedx(struct bor br, int x, int y)
+{
+	x = x + br.pading;
+	y = y + br.pading;
+	return br.bor[br.index_bor] + min_z(x,y);
+}
+
+int* bor_inedx_alt(struct bor br, int x, int y)
+{
+	x = x + br.pading;
+	y = y + br.pading;
+	return br.bor[(br.index_bor + 1) % 2] + min_z(x,y);
+}
+#else
+
+int* bor_inedx(struct bor br, int x, int y)
+
 {
 	return br.bor[br.index_bor] + (br.len_x+br.pading*2)*(y + br.pading) + x + br.pading;
 }
@@ -53,10 +120,19 @@ struct xy bor_inedx_invers(struct bor br, int index)
 	return i;
 }
 
+#endif
+
 int init(struct bor *pbr, int len_x, int len_y)
 {
 	int pad = 1;
+
+#ifdef ZMEMO
+	int len_m = max(len_x, len_y);
+	len_m = 1 << ((int)ceil(log2(len_m + pad*2)));
+	struct bor br = {len_x, len_y, pad ,0 , {(int*)malloc(len_m*len_m*sizeof(int)), (int*)malloc(len_m*len_m*sizeof(int))}};
+#else
 	struct bor br = {len_x, len_y, pad ,0 , {(int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int)), (int*)malloc((len_x + pad*2)*((len_y + pad*2))*sizeof(int))}};
+#endif
 	if (br.bor[0] == NULL || br.bor[1] == NULL) {fprintf(stderr,"faild of alocade bord"); return 1;}
 	*pbr = br;
 	return 0;
@@ -175,7 +251,7 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
 		{
-			int index = (br.len_x*y + x)/8;
+			int index = (br.len_x*y + x)/ 8;
 			buff[index] = buff[index] << 1;
 			if(*bor_inedx(br, x, y))
 				buff[index]++;
