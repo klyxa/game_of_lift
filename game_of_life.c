@@ -138,7 +138,7 @@ int init(struct bor *pbr, int len_x, int len_y)
 	return 0;
 }
 
-void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
+void read_ascci_pbm_img_stream(struct bor br , FILE *fp)
 {
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
@@ -147,14 +147,13 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 			do
 			{
 				h = fgetc(fp);
-				//putchar(h);
 			}while(h != '0' && h != '1' && h != EOF);	
 			*bor_inedx(br, x, y) = (h == '0');
 		}
 }
 
 // img in p4 .pbm
-void read_bin_pbm_img_stream (struct bor br , FILE *fp)
+void read_bin_pbm_img_stream(struct bor br , FILE *fp)
 {
 	int ch;
 	int i = 8;
@@ -206,6 +205,8 @@ int lode_fra_img(struct bor *br ,char *file_name)
 	free(s);
 	if(nread == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
 
+	//x= x-2;
+	//y = x-2;;
 	if( init(br, x, y) ){fprintf(stderr,"faild to inishiale brat størlse %d %d i filen %s \n ", x, y, file_name); return 3;}
 
 	switch (type)
@@ -242,19 +243,26 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 	if(fp == NULL) {fprintf(stderr,"fejel i at skrive til %s \n", file_name); return 1;}
 
 	fprintf(fp,"P4\n%d %d\n",br.len_x ,br.len_y);
-
- 	size_t buff_size =  br.len_x*br.len_y;
+	
+	printf("P4\n%d %d\n",br.len_x ,br.len_y);
+	int m_l_x = (br.len_x + 8 - 1) & ~(8 - 1);
+	printf("m_l_x:%d\n",m_l_x);
+ 	size_t buff_size =  m_l_x*br.len_y;
 	unsigned char *buff = (unsigned  char*)malloc(buff_size);
 	//unsigned char *buff = (unsigned  char*)calloc(1+buff_size/sizeof(unsigned  char*), sizeof (unsigned  char));
-
+	printf("br.len_x = %d br.len_x %% 8 = %d\n",br.len_x, br.len_x % 8);
 	for(int y = 0; y < br.len_y; y++)
+	{
+		int index = 0;
 		for(int x = 0; x < br.len_x; x++)
 		{
-			int index = (br.len_x*y + x)/ 8;
+			index = (br.len_x*y + x)/ 8;
 			buff[index] = buff[index] << 1;
 			if(*bor_inedx(br, x, y))
 				buff[index]++;
 		}
+		buff[index] = buff[index] << 8 - (br.len_x % 8);
+	}
 	fwrite(buff, sizeof(unsigned char), buff_size/sizeof(unsigned char), fp);
 	free(buff);
 	fclose(fp);
