@@ -157,21 +157,19 @@ void read_ascci_pbm_img_stream (struct bor br , FILE *fp)
 void read_bin_pbm_img_stream (struct bor br , FILE *fp)
 {
 	int ch;
-	int i = 0;
+	int i = 8;
 	for(int y = 0; y < br.len_y; y++)
 	{
-		ch = fgetc(fp);
-		i = 0;
-		for(int x = 0; x < br.len_x -  1; x++)
+		i = 8; 
+		for(int x = 0; x < br.len_x; x++)
 		{
-			*bor_inedx(br, x, y) = 0 < (ch & (1 << (7 - i)));
-
-			i++;
 			if(i == 8)
 			{
 				ch = fgetc(fp);
 				i = 0;
 			}
+			*bor_inedx(br, x, y) = 0 < (ch & (1 << (7 - i)));
+			i++;
 		}
 	}
 
@@ -247,6 +245,7 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 
  	size_t buff_size =  br.len_x*br.len_y;
 	unsigned char *buff = (unsigned  char*)malloc(buff_size);
+	//unsigned char *buff = (unsigned  char*)calloc(1+buff_size/sizeof(unsigned  char*), sizeof (unsigned  char));
 
 	for(int y = 0; y < br.len_y; y++)
 		for(int x = 0; x < br.len_x; x++)
