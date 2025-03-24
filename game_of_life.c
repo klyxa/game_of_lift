@@ -43,48 +43,57 @@ int bor_granse_tjek(struct bor br, int x, int y)
 	return 1;
 }
 #ifdef ZMEMO
-
-int min_z(int x,int y)
+/*
+unsigned int min_z(int x,int y)
 {
-	int index = 0;
+    	unsigned int index = 0;
 
-	index += (1 & (x >> 0)) << 0;
-	index += (1 & (x >> 1)) << 2;
-	index += (1 & (x >> 2)) << 4;
-	index += (1 & (x >> 3)) << 6;
-	index += (1 & (x >> 4)) << 8;
-	index += (1 & (x >> 5)) << 10;
-	index += (1 & (x >> 6)) << 12;
-	index += (1 & (x >> 7)) << 14;
-	index += (1 & (x >> 8)) << 16;
-	index += (1 & (x >> 9)) << 18;
-	index += (1 & (x >> 10)) << 20;
-	index += (1 & (x >> 11)) << 22;
-	index += (1 & (x >> 12)) << 24;
-	index += (1 & (x >> 13)) << 26;
-	index += (1 & (x >> 14)) << 28;
-	index += (1 & (x >> 15)) << 30;
-	
-	index += (1 & (y >> 0)) << 1;
-	index += (1 & (y >> 1)) << 3;
-	index += (1 & (y >> 2)) << 5;
-	index += (1 & (y >> 3)) << 7;
-	index += (1 & (y >> 4)) << 9;
-	index += (1 & (y >> 5)) << 11;
+	index += (1 & (y >> 0)) << 0;
+	index += (1 & (y >> 1)) << 2;
+	index += (1 & (y >> 2)) << 4;
+	index += (1 & (y >> 3)) << 6;
+	index += (1 & (y >> 4)) << 8;
+	index += (1 & (y >> 5)) << 10;
 	index += (1 & (y >> 6)) << 12;
-	index += (1 & (y >> 7)) << 13;
-	index += (1 & (y >> 8)) << 15;
-	index += (1 & (y >> 9)) << 17;
-	index += (1 & (y >> 10)) << 19;
-	index += (1 & (y >> 11)) << 21;
-	index += (1 & (y >> 12)) << 23;
-	index += (1 & (y >> 13)) << 25;
-	index += (1 & (y >> 14)) << 27;
-	index += (1 & (y >> 15)) << 29;
-	index += (1 & (y >> 16)) << 31;
+	index += (1 & (y >> 7)) << 14;
+	index += (1 & (y >> 8)) << 16;
+	index += (1 & (y >> 9)) << 18;
+	index += (1 & (y >> 10)) << 20;
+	index += (1 & (y >> 11)) << 22;
+	index += (1 & (y >> 12)) << 24;
+	index += (1 & (y >> 13)) << 26;
+	index += (1 & (y >> 14)) << 28;
+	index += (1 & (y >> 15)) << 30;
+	
+	index += (1 & (x >> 0)) << 1;
+	index += (1 & (x >> 1)) << 3;
+	index += (1 & (x >> 2)) << 5;
+	index += (1 & (x >> 3)) << 7;
+	index += (1 & (x >> 4)) << 9;
+	index += (1 & (x >> 5)) << 11;
+	index += (1 & (x >> 6)) << 13;
+	index += (1 & (x >> 7)) << 15;
+	index += (1 & (x >> 8)) << 17;
+	index += (1 & (x >> 9 )) << 19;
+	index += (1 & (x >> 10)) << 21;
+	index += (1 & (x >> 11)) << 23;
+	index += (1 & (x >> 12)) << 25;
+	index += (1 & (x >> 13)) << 27;
+	index += (1 & (x >> 14)) << 29;
+	index += (1 & (x >> 15)) << 31;
 	return index;
 }
-
+*/
+int min_z(int x, int y)
+{
+	unsigned int z = 0;
+	for (unsigned int i = 0; i < 16; i++)
+	{
+		z |= ((x >> i) & 1) << (2 * i + 1); // y bits go to odd positions
+		z |= ((y >> i) & 1) << (2 * i);     // x bits go to even positions
+	}
+	return z;
+}
 
 int* bor_inedx(struct bor br, int x, int y)
 {
@@ -148,7 +157,7 @@ void read_ascci_pbm_img_stream(struct bor br , FILE *fp)
 			{
 				h = fgetc(fp);
 			}while(h != '0' && h != '1' && h != EOF);	
-			*bor_inedx(br, x, y) = (h == '0');
+			*bor_inedx(br, x, y) = (h == '1');
 		}
 }
 
@@ -205,8 +214,6 @@ int lode_fra_img(struct bor *br ,char *file_name)
 	free(s);
 	if(nread == EOF) {fprintf(stderr,"ugyldi Portable BitMap(.pbm) kunne ikke finde størlse fx som 1920 1080 og 100 100 mm. i filen %s \n", file_name); return 2;}
 
-	//x= x-2;
-	//y = x-2;;
 	if( init(br, x, y) ){fprintf(stderr,"faild to inishiale brat størlse %d %d i filen %s \n ", x, y, file_name); return 3;}
 
 	switch (type)
@@ -244,24 +251,20 @@ int gem_til_img(struct bor br ,char *fil_sti, int i)
 
 	fprintf(fp,"P4\n%d %d\n",br.len_x ,br.len_y);
 	
-	printf("P4\n%d %d\n",br.len_x ,br.len_y);
 	int m_l_x = (br.len_x + 8 - 1) & ~(8 - 1);
-	printf("m_l_x:%d\n",m_l_x);
  	size_t buff_size =  m_l_x*br.len_y;
 	unsigned char *buff = (unsigned  char*)malloc(buff_size);
 	//unsigned char *buff = (unsigned  char*)calloc(1+buff_size/sizeof(unsigned  char*), sizeof (unsigned  char));
-	printf("br.len_x = %d br.len_x %% 8 = %d\n",br.len_x, br.len_x % 8);
 	for(int y = 0; y < br.len_y; y++)
 	{
 		int index = 0;
-		for(int x = 0; x < br.len_x; x++)
+		for(int x = 0; x < m_l_x; x++)
 		{
-			index = (br.len_x*y + x)/ 8;
+			index = (m_l_x*y + x)/ 8;
 			buff[index] = buff[index] << 1;
 			if(*bor_inedx(br, x, y))
 				buff[index]++;
 		}
-		buff[index] = buff[index] << 8 - (br.len_x % 8);
 	}
 	fwrite(buff, sizeof(unsigned char), buff_size/sizeof(unsigned char), fp);
 	free(buff);
