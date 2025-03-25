@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//huuuuuuuuuuuuuuuuuuuuuuuu
+#include <errno.h>
+
 int min(int a, int b)
 {
 	if(a < b)
